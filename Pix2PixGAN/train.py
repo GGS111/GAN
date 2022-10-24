@@ -74,7 +74,7 @@ def main():
         num_workers=config.NUM_WORKERS
     )
     val_dataset = MapDataset(root_dir=config.VAL_DIR)
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=1, shuffle=True)
     d_scaler = torch.cuda.amp.GradScaler()
     g_scaler = torch.cuda.amp.GradScaler()
 

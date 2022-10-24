@@ -13,10 +13,10 @@ CHANNELS_IMG = 3
 L1_LAMBDA = 100
 LAMBDA_GP = 10
 NUM_EPOCHS = 500
-LOAD_MODEL = False
+LOAD_MODEL = True
 SAVE_MODEL = True
-CHECKPOINT_DISC = "disc.pth.tar"
-CHECKPOINT_GEN = "gen.pth.tar"
+CHECKPOINT_DISC = "weights/disc.pth.tar"
+CHECKPOINT_GEN = "weights/gen.pth.tar"
 
 #We can Use Both transform, or use Single transforms for input and mask
 both_transform = A.Compose(
@@ -25,7 +25,7 @@ both_transform = A.Compose(
 
 transform_only_input = A.Compose(
     [   
-        A.HorizontalFlip(p=0.5),
+        #A.HorizontalFlip(p=0.5),
         A.ColorJitter(p=0.2),
         A.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5], max_pixel_value=255.0,),
         ToTensorV2(),
