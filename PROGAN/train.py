@@ -45,20 +45,9 @@ def get_loader(image_size):
     return loader, dataset
 
 
-def train_fn(
-    critic,
-    gen,
-    loader,
-    dataset,
-    step,
-    alpha,
-    opt_critic,
-    opt_gen,
-    tensorboard_step,
-    writer,
-    scaler_gen,
-    scaler_critic,
-):
+def train_fn(critic, gen, loader, dataset, step, alpha, opt_critic, 
+             opt_gen, tensorboard_step, writer, scaler_gen, scaler_critic):
+
     loop = tqdm(loader, leave=True)
     for batch_idx, (real, _) in enumerate(loop):
         real = real.to(config.DEVICE)
@@ -95,9 +84,7 @@ def train_fn(
         scaler_gen.update()
 
         # Update alpha and ensure less than 1
-        alpha += cur_batch_size / (
-            (config.PROGRESSIVE_EPOCHS[step] * 0.5) * len(dataset)
-        )
+        alpha += cur_batch_size / ((config.PROGRESSIVE_EPOCHS[step] * 0.5) * len(dataset))
         alpha = min(alpha, 1)
 
         if batch_idx % 500 == 0:
@@ -113,10 +100,7 @@ def train_fn(
             )
             tensorboard_step += 1
 
-        loop.set_postfix(
-            gp=gp.item(),
-            loss_critic=loss_critic.item(),
-        )
+        loop.set_postfix(gp=gp.item(), loss_critic=loss_critic.item())
 
     return tensorboard_step, alpha
 
@@ -130,9 +114,7 @@ def main():
 
     # initialize optimizers and scalers for FP16 training
     opt_gen = optim.Adam(gen.parameters(), lr=config.LEARNING_RATE, betas=(0.0, 0.99))
-    opt_critic = optim.Adam(
-        critic.parameters(), lr=config.LEARNING_RATE, betas=(0.0, 0.99)
-    )
+    opt_critic = optim.Adam(critic.parameters(), lr=config.LEARNING_RATE, betas=(0.0, 0.99))
     scaler_critic = torch.cuda.amp.GradScaler()
     scaler_gen = torch.cuda.amp.GradScaler()
 
@@ -140,12 +122,8 @@ def main():
     writer = SummaryWriter(f"logs/gan1")
 
     if config.LOAD_MODEL:
-        load_checkpoint(
-            config.CHECKPOINT_GEN, gen, opt_gen, config.LEARNING_RATE,
-        )
-        load_checkpoint(
-            config.CHECKPOINT_CRITIC, critic, opt_critic, config.LEARNING_RATE,
-        )
+        load_checkpoint(config.CHECKPOINT_GEN, gen, opt_gen, config.LEARNING_RATE,)
+        load_checkpoint(config.CHECKPOINT_CRITIC, critic, opt_critic, config.LEARNING_RATE,)
 
     gen.train()
     critic.train()
@@ -160,20 +138,9 @@ def main():
 
         for epoch in range(num_epochs):
             print(f"Epoch [{epoch+1}/{num_epochs}]")
-            tensorboard_step, alpha = train_fn(
-                critic,
-                gen,
-                loader,
-                dataset,
-                step,
-                alpha,
-                opt_critic,
-                opt_gen,
-                tensorboard_step,
-                writer,
-                scaler_gen,
-                scaler_critic,
-            )
+            tensorboard_step, alpha = train_fn(critic, gen, loader, dataset, step, alpha,
+                                               opt_critic, opt_gen, tensorboard_step, writer, 
+                                               scaler_gen, scaler_critic)
 
             if config.SAVE_MODEL:
                 save_checkpoint(gen, opt_gen, filename=config.CHECKPOINT_GEN)
