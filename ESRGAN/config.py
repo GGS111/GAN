@@ -5,7 +5,7 @@ from albumentations.pytorch import ToTensorV2
 
 LOAD_MODEL = False
 SAVE_MODEL = True
-CHECKPOINT_GEN = "weights/ESRGAN_generator.pth"
+CHECKPOINT_GEN = "weights/ESRGAN_x4.pth"
 CHECKPOINT_DISC = "disc.pth"
 PATH_TO_LEARN = 'data/'
 PATH_TO_TEST = 'test_data/'

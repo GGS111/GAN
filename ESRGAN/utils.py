@@ -2,6 +2,7 @@ import torch
 import os
 import config
 import numpy as np
+from tqdm import tqdm
 from PIL import Image
 from torchvision.utils import save_image
 
@@ -41,9 +42,9 @@ def save_checkpoint(model, optimizer, filename="my_checkpoint.pth.tar"):
 def load_checkpoint(checkpoint_file, model, optimizer, lr):
     print("=> Loading checkpoint")
     checkpoint = torch.load(checkpoint_file, map_location=config.DEVICE)
-    # model.load_state_dict(checkpoint)
-    model.load_state_dict(checkpoint["state_dict"])
-    optimizer.load_state_dict(checkpoint["optimizer"])
+    model.load_state_dict(checkpoint['params_ema'])
+    #model.load_state_dict(checkpoint["state_dict"])
+    #optimizer.load_state_dict(checkpoint["optimizer"])
 
     # If we don't do this then it will just have learning rate of old checkpoint
     # and it will lead to many hours of debugging \:
@@ -55,8 +56,8 @@ def plot_examples(low_res_folder, gen):
     files = os.listdir(low_res_folder)
 
     gen.eval()
-    for file in files:
-        image = Image.open(config.PATH_TO_TEST + file)
+    for file in tqdm(files, colour='green'):
+        image = read_image(file)
         with torch.no_grad():
             upscaled_img = gen(
                 config.test_transform(image=np.asarray(image))["image"]
@@ -66,3 +67,14 @@ def plot_examples(low_res_folder, gen):
         os.makedirs(config.PATH_TO_SAVE, exist_ok=True)
         save_image(upscaled_img, f"{config.PATH_TO_SAVE}/{file}")
     gen.train()
+
+def read_image(file):
+    image = Image.open(config.PATH_TO_TEST + file)
+    if len(np.array(image).shape) < 3: #GRAY
+        convert_image = image.convert(mode='RGB')
+    elif len(np.array(image).shape) == 3 and np.array(image).shape[2] == 4: #RGBA
+        convert_image = Image.new("RGB", image.size, (255, 255, 255))
+        convert_image.paste(image, mask=image.split()[3]) # 3 is the alpha channel
+    else: #RGB
+        convert_image = image
+    return convert_image
